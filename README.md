@@ -14,4 +14,7 @@ Some of its functionality:
 [Click here](https://github.com/BesterCode/CodexMod/raw/main/RPGCodexMod.user.js) and hit "Install" in Tampermonkey
 
 ## Codex thread
-link to be inserted...
+[Link](https://rpgcodex.net/forums/threads/codex-mod.139660/)
+
+## Installation
+MIT
