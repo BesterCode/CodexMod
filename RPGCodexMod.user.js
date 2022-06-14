@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		RPGCodex Mod
 // @match		https://rpgcodex.net/*
-// @version		2.0
+// @version		2.0.1
 // @license     MIT
 // @author		Bester
 // @description	Quality of Life and CSS improvements for RPGCodex.net
@@ -55,6 +55,7 @@ async function init() {
 // fires when the DOM content is loaded
 function initContentLoaded() {
   if (window.location.pathname.startsWith('/forums')) {
+    applyRetroDom();
     // forum mods that modify DOM content go here
     //applyIgnoreModDom();
     //if (!optionRemoveRatings && optionRemoveButtons && optionWhichButtons.length > 0) applyRemoveButtonsModDom();
@@ -359,6 +360,15 @@ function applyRetroModCss() {
     }
     `;
     document.head.appendChild(retroStyle);
+}
+
+function applyRetroDom() {
+    let divs = document.getElementsByClassName('p-header-logo p-header-logo--image');
+    if (divs.length == 0) return;
+    let codexTroll = divs[0].getElementsByTagName("img")[0];
+    console.log(codexTroll);
+    codexTroll.removeAttribute("width");
+    codexTroll.removeAttribute("height");
 }
 
 function applyOptionsModDom() {
