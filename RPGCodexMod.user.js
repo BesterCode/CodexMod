@@ -914,7 +914,7 @@ function applyIgnoreModCss() {
     // hide quotes
     ignoreStyles.innerHTML += 'blockquote[data-quote="'+ignoredName+'"] { display: none !important; }';
     // hide shoutbox messages
-    ignoreStyles.innerHTML += 'li[data-userid="'+ignoredId+'"] { display: none !important; }';
+    ignoreStyles.innerHTML += 'li[data-user-id="'+ignoredId+'"] { display: none !important; }';
     document.head.appendChild(ignoreStyles);
   }
 }
