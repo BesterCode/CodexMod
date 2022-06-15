@@ -203,6 +203,9 @@ function applyRetroModCss() {
       top: 14px;
       width: 29px;
     }
+    .node--read>.node-body>.node-icon {
+      background-image: url(data:image/gif;base64,R0lGODlhFQAjAID/AMDAwLzEzSH5BAEAAAAALAAAAAAVACMAQAJDhI+py+0Po5y02ouz3rz7rwViIgZOSY4NirAMCqvvGJutWgOuweY+TguacjphcWg8Kn825hKIjD6bRuf02qtqqVJnAQA7ACH5BAEAABMALAAAAAAVACMAAAWq4CSOZGmeaKqmSFu2yCqjSl3WyqyTR1/2h53QQJwQDcaiUEdoTpqEp5MEXZoE2AlWoM2SttbSYzwZP8pkM/ocHhUSick7XqjL7fBCezToT/oDf34DDAwTDH57ExKMi42MEo6RkIoTDpeWmJcOmZyblRGhE6ERo6KkpqWKDawTrA2ura+xsIoQtxO3ELm4ury7igHCE8IBxAELx8YLw4oAzxPPyc8A0dDUiiEAOw==);
+    }
     span.node-icon i {
       display: none !important;
     }
@@ -220,7 +223,7 @@ function applyRetroModCss() {
       display: block !important;
     }
     .block--category>.block-container>.block-body>.node>.node-body>.node-extra {
-      width: 350px !important;
+      max-width: 350px;
     }
     div.node-main {
       min-width: 300px;
