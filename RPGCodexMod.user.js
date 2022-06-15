@@ -39,7 +39,7 @@ async function init() {
     // forum mods that modify CSS go here
     applyRetroModCss();
 
-    //applyIgnoreModCss();
+    applyIgnoreModCss();
     //applyAvatarModCss();
     //if (optionRemoveRatings) applyRatingsModCss();
     //applyMemcardModCss();
@@ -67,7 +67,7 @@ function initContentLoaded() {
     // main site mods that modify DOM content go here
     //applyArticleModDom();
   }
-  //applyOptionsModDom();
+  applyOptionsModDom();
 }
 
 // @run-at document-start fires when there's just <html> tags, but no head yet, so we wait for it before injecting css
@@ -367,6 +367,9 @@ function applyRetroModCss() {
     dl.pairs.pairs--rows dd {
       font-size: 12px;
     }
+    article.message.message--post {
+      margin-top: 0px !important;
+    }
     `;
     document.head.appendChild(retroStyle);
 }
@@ -393,13 +396,15 @@ function applyOptionsModDom() {
   .codex_small_menu {
     position: absolute;
     width: 20px;
-    height: 12px;
+    height: 20px;
     bottom: 0px;
     text-align: center;
     right: 0px;
     padding: 0px 4px 5px 4px !important;
+    font-size: 12px;
   }
   .codex_large_menu {
+    font-size: 13px;
     position: absolute;
     width: 300px;
     max-height: 143px;
@@ -409,7 +414,7 @@ function applyOptionsModDom() {
     z-index: 100;
   }
   .codex_larger_menu {
-    max-height: 248px;
+    max-height: 273px;
   }
   .codex_options_style {
     background-color: #3c4042;
@@ -437,13 +442,14 @@ function applyOptionsModDom() {
   }
   .save_btn {
     height: 24px;
-    width: 90px;
+    width: 100px;
     margin-top: 5px;
     border-radius: 3px;
     border: 3px solid transparent;
     color: #fff;
     cursor: pointer;
     background-color: #272931;
+    font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
   }
   .save_btn:hover {
     background-color: #1a9ed2;
@@ -904,9 +910,9 @@ function applyIgnoreModCss() {
     let ignoreStyles = document.createElement('style');
     ignoreStyles.type = 'text/css';
     // hide posts
-    ignoreStyles.innerHTML = 'li[data-author="'+ignoredName+'"] { display: none !important; }';
+    ignoreStyles.innerHTML = 'article[data-author="'+ignoredName+'"] { display: none !important; }';
     // hide quotes
-    ignoreStyles.innerHTML += 'div[data-author="'+ignoredName+'"] { display: none !important; }';
+    ignoreStyles.innerHTML += 'blockquote[data-author="'+ignoredName+'"] { display: none !important; }';
     // hide shoutbox messages
     ignoreStyles.innerHTML += 'li[data-userid="'+ignoredId+'"] { display: none !important; }';
     document.head.appendChild(ignoreStyles);
