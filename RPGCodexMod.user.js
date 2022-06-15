@@ -912,7 +912,7 @@ function applyIgnoreModCss() {
     // hide posts
     ignoreStyles.innerHTML = 'article[data-author="'+ignoredName+'"] { display: none !important; }';
     // hide quotes
-    ignoreStyles.innerHTML += 'blockquote[data-author="'+ignoredName+'"] { display: none !important; }';
+    ignoreStyles.innerHTML += 'blockquote[data-quote="'+ignoredName+'"] { display: none !important; }';
     // hide shoutbox messages
     ignoreStyles.innerHTML += 'li[data-userid="'+ignoredId+'"] { display: none !important; }';
     document.head.appendChild(ignoreStyles);
