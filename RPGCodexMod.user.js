@@ -158,6 +158,9 @@ function applyRetroModCss() {
     body {
       font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
     }
+    .message-body {
+      font-size: 13px !important;
+    }
     .p-body-inner {
       max-width: 100%;
       padding-left: 40px;
@@ -262,6 +265,9 @@ function applyRetroModCss() {
     div.message-userDetails {
       position: absolute;
       top: 6px;
+      max-width: 137px;
+      white-space: nowrap;
+      overflow: hidden;
     }
     span.message-avatar-online {
       left: inherit !important;
