@@ -261,23 +261,8 @@ function applyRetroModCss() {
     div.message-cell.message-cell--user {
       padding: 6px;
     }
-    div.message-avatar {
-      padding-top: 40px;
+    div.message-avatar {      
       text-align: left;
-    }
-    div.message-userDetails {
-      position: absolute;
-      top: 6px;
-      max-width: 137px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-    span.message-avatar-online {
-      left: inherit !important;
-      margin-left: 0 !important;
-      bottom: inherit !important;
-      right: -41px;
-      top: -40px;
     }
     div.message-cell.message-cell--user {
       flex: 0 0 150px !important;
@@ -369,6 +354,23 @@ function applyRetroModCss() {
     }
     article.message.message--post {
       margin-top: 0px !important;
+    }
+    section.message-user {
+      display: flex;
+      flex-flow: column;
+    }
+    div.message-avatar {
+      order: 2;
+      margin-top: 8px;
+    }
+    div.message-userDetails {
+      order: 1;
+    }
+    div.message-userExtras {
+      order: 3;
+    }
+    span.message-avatar-online {
+      display: none;
     }
     `;
     document.head.appendChild(retroStyle);
