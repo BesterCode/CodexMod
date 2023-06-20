@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		RPGCodex Mod
 // @match		https://rpgcodex.net/*
-// @version		2.0.1
+// @version		2.0.2
 // @license     MIT
 // @author		Bester
 // @description	Quality of Life and CSS improvements for RPGCodex.net
@@ -16,6 +16,7 @@ let ignoredUsers = new Map(); // map <id, name>
 let ignoredUserNames = new Set();
 let openedCards = new Set(); // ids of member cards that we already opened on this page
 let optionRemoveRatings = false;
+let optionRetroMod = false;
 let optionImproveCss = false; // option to improve articles css on the main page
 let optionRemoveButtons = false;
 let optionWhichButtons = '';
@@ -37,17 +38,16 @@ async function init() {
 
   if (window.location.pathname.startsWith('/forums')) {
     // forum mods that modify CSS go here
-    applyRetroModCss();
 
+    if (optionRetroMod) applyRetroModCss();
     applyIgnoreModCss();
-    //applyAvatarModCss();
-    //if (optionRemoveRatings) applyRatingsModCss();
-    //applyMemcardModCss();
-    //addMyTxtCss();
-    //addColorPickerCss();
+    if (optionRemoveRatings) applyRatingsModCss();
+    addMyTxtCss();
+    addColorPickerCss();
   }
   else {
     // main site mods that modify CSS go here
+
     //if (optionImproveCss) applyImproveModCss();
   }
 }
@@ -55,16 +55,17 @@ async function init() {
 // fires when the DOM content is loaded
 function initContentLoaded() {
   if (window.location.pathname.startsWith('/forums')) {
-    applyRetroDom();
     // forum mods that modify DOM content go here
+
     //applyIgnoreModDom();
     //if (!optionRemoveRatings && optionRemoveButtons && optionWhichButtons.length > 0) applyRemoveButtonsModDom();
-    //detectOpenMemberCard();
+    detectOpenMemberCard(); // detects a user's card being open to inject it with "ignore by mod" button, color picker and custom text info
     //detectOpenAlertsPopup();
-    //if (userColors.size > 0) applyUserColorsModDom();
+    if (userColors.size > 0) applyUserColorsModDom();
   }
   else {
     // main site mods that modify DOM content go here
+
     //applyArticleModDom();
   }
   applyOptionsModDom();
@@ -88,6 +89,7 @@ function savePersistentData() {
     savedTxtTexts: Array.from(savedTexts.values()),
     userColorIds: Array.from(userColors.keys()),
     userColorValues: Array.from(userColors.values()),
+    optionRetroMod: optionRetroMod,
     optionRemoveRatings: optionRemoveRatings,
     optionImproveCss: optionImproveCss,
     optionRemoveButtons: optionRemoveButtons,
@@ -128,6 +130,9 @@ function loadPersistentData() {
     for (let i = 0; i < persistentData.userColorIds.length; i++) {
       userColors.set(persistentData.userColorIds[i], persistentData.userColorValues[i]);
     }
+  }
+  if (typeof persistentData.optionRetroMod !== 'undefined') {
+    optionRetroMod = persistentData.optionRetroMod;
   }
   if (typeof persistentData.optionRemoveRatings !== 'undefined') {
     optionRemoveRatings = persistentData.optionRemoveRatings;
@@ -171,14 +176,13 @@ function applyRetroModCss() {
       background-color: #3F3F3F;
     }
     header.p-header {
-      height: 90px;
-      background: url(data:image/png;base64,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);
+      display: none;
     }
-    div.p-header-inner {
-      background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAccAAABGCAYAAAC5Z197AAAAB3RJTUUH2gMFBwUAdzf9ywAAAAlwSFlzAAALEwAACxMBAJqcGAAAAARnQU1BAACxjwv8YQUAAAOiSURBVHja7d1RdtsgEAXQdiXZ/7KykjbtV5LjyMAMA1j3/kZ4AMk2r1Lxr18AAAAAAAAAAAAAAAAAAADAFn4/O+DPh3CRDy3HVdbKqh+pt0L1GEfPaU/NU8Y02p+reiPtTrtmAQDYQEly/F+oYbVaWSuz9ikr8RVjrKgpOfa1O+V6BQBgI6E0l73aray1ot0KK8aYfe6z+pp13iRHAABuR3IsbLeC5NiWHKvmJup77dZ+7nZdAgBwGMmxsN0KkuM+7TL01JYcAQBIIzkOtDvJijFKjjUicwYAAF0kx4F2J5Ec92mXTXIEAKDMVvudVu+tuksCmElyrG3XKmPuJUcAAMpsleaqV+SSo+SY3a6V5AgAwFHSnlbNWMVWp5zR3Uai46wkOe7TLkPW/rAAANAlPc1FfkNOcswnOe7TLsPVfql3uIcOAMAiL7FDzqgTk8MJY5Qc5+n5pQ2/ygEAQBrJsWhsq0iObU9U7/z/Y0fv40fu/wMAwBeSY9HYVpEca5PjqJHxSY4AAJS5dXJsrX3lpFV4JPGMjrOiZvW5kxwBALgdybGx/sp+nTzGilQnOea2AwAAAAAAAAAAgFRNT629v79/eert7e0t5Wm3z6+b9Zp3NescvZLvc/TZrvPlvL6eE6/DFWO9atvzOgBAkq5v3OxVrOSYR8Loc8p8ndJPxtzp/PaOVXIEgM0MfePOWAH89BrP2l7Vjv7bfm/tyDh/ep2Mfva8Vq/R8zPz3Iy0j1zDs1au0fMaee9k9Pfq/fGodsa1FKnZ27ZizlratLaPjnWn91xvbQAgwfR7hitWdVcrlJbVy+iKMWsVOlK/+t5FZFU9a7U+OsdXx0evpajRGisSUSQ5rkp/j/7+KLHskBxnfq7N/DwdOfbR8T+RHAGgSPgbd9ZqMdL29OQ44lWSY1WfJMf8Pp+eHGfMSXTOWo+VHAGA6dLuOf5TcT+g92/PZD7teqfkODpHGXOR8VTwaHKM1BwhOdbfc6wUSV5XTvg8lRwB4DDT/5/jDsmx6r7WHZNj7xxF52LGE8FXx6+eV8lRchw59ln7FZ+nkiMAHG763qqSY9tYM/s1q0bGHEXnSXKUHDPHeqfk+Og1vmt5oldyBICbKtl95bS9VUf7u3qfxsiYM+u01Jv9O28je3eOtq1YuUafCq7s94z9dp/1d8Z7dpaZe+bO3FFrxjV41V5yBIDN+MYFplp935YzSY4AsBnfuMAUEiMAAAAAAAAAd/UXnfTgdg88O+8AAAAASUVORK5CYII=) no-repeat;
-      height: 90px;
-      margin-left: 145px;
-      margin-top: 10px;
+    div.extraHeader {
+      display: none;
+    }
+    div.codexTroll {
+      z-index: 1000;
     }
     div.p-header-logo.p-header-logo--image {
       top: 0px !important;
@@ -376,15 +380,6 @@ function applyRetroModCss() {
     document.head.appendChild(retroStyle);
 }
 
-function applyRetroDom() {
-    let divs = document.getElementsByClassName('p-header-logo p-header-logo--image');
-    if (divs.length == 0) return;
-    let codexTroll = divs[0].getElementsByTagName("img")[0];
-    console.log(codexTroll);
-    codexTroll.removeAttribute("width");
-    codexTroll.removeAttribute("height");
-}
-
 function applyOptionsModDom() {
   let codexOptionsStyle = document.createElement('style');
   codexOptionsStyle.type = 'text/css';
@@ -413,10 +408,10 @@ function applyOptionsModDom() {
     bottom: 0px;
     text-align: center;
     right: 20px;
-    z-index: 100;
+    z-index: 2000;
   }
   .codex_larger_menu {
-    max-height: 273px;
+    max-height: 293px;
   }
   .codex_options_style {
     background-color: #3c4042;
@@ -440,7 +435,7 @@ function applyOptionsModDom() {
   }
   .div_remove_buttons {
     text-align: left;
-    margin-top: 5px;
+    margin-top: 10px;
   }
   .save_btn {
     height: 24px;
@@ -513,6 +508,7 @@ function applyOptionsModDom() {
       <div><span class="mod_toggler" onclick="toggleModMenu(true);">Mod Settings</span></div>
       <div class="codex_options_separator"></div>
       <div>
+        <span class="inputspan"><label><input type="checkbox" id="chbox_retromod">Retro CSS</label></span><br/>
         <span class="inputspan"><label><input type="checkbox" id="chbox_remove_ratings">Remove Ratings</label></span>
         <span class="inputspan"><label><input type="checkbox" id="chbox_improve_css">Improve Article CSS</label></span>
       </div>
@@ -549,6 +545,13 @@ function applyOptionsModDom() {
   }
   `;
   document.head.appendChild(inlineScript);
+
+  let retroModCheckbox = document.getElementById('chbox_retromod');
+  retroModCheckbox.checked = optionRetroMod;
+  retroModCheckbox.onchange = function(event){
+    optionRetroMod = event.target.checked;
+    savePersistentData();
+  };
 
   let removeRatingsCheckbox = document.getElementById('chbox_remove_ratings');
   removeRatingsCheckbox.checked = optionRemoveRatings;
@@ -673,8 +676,35 @@ function detectOpenMemberCard() {
     m.forEach(record => record.addedNodes.length & addedNodes.push(...record.addedNodes))
 
     addedNodes.forEach(addedNode => {
-      if (addedNode.tagName === 'DIV' && addedNode.className === "xenOverlay memberCard") {
-        addCustomInfoToCard(addedNode);
+      if (addedNode.tagName === 'DIV' && addedNode.className === "tooltip tooltip--member") {
+        // Because cards don't immediately have the fields with the nickname and get populated later (thanks Xenforo),
+        // we have to observe this added node (user card) and wait until it becomes visible (display: block)
+        const target = addedNode;
+
+        // Callback function to execute when changes are observed
+        const callback = function(mutationsList, observer) {          
+          // Check all mutations for changes
+          for(const mutation of mutationsList) {
+            if (mutation.type === 'attributes') {
+              const style = window.getComputedStyle(target);
+              const display = style.getPropertyValue('display');
+              if(display === 'block') {
+                // Add custom info to the card when the card becomes visible
+                addCustomInfoToCard(addedNode);                      
+
+                // Stop observing once we've seen the display change to block
+                observer.disconnect();
+                break;
+              }
+            }
+          }
+        };
+
+        // Create an observer instance linked to the callback function
+        const observer = new MutationObserver(callback);
+
+        // Start observing the target element with the configured parameters
+        observer.observe(target, { attributes: true, attributeFilter: ["style"] });
       }
     });
   });
@@ -682,39 +712,51 @@ function detectOpenMemberCard() {
 
 // add custom fields, but only if we're opening this user's card for the first time
 function addCustomInfoToCard(cardDomElement) {
+  let spanNicknameNode = cardDomElement.querySelector('span.memberTooltip-nameWrapper');
+  let userNameNode = spanNicknameNode.querySelector('a');
+  // admin usernames are wrapped into an additional span
+  let adminUserNameNode = userNameNode.querySelector('span');
   // find out the name and the id on the card
-  let aNode = cardDomElement.querySelector('a.username.NoOverlay');
-  let userName = aNode.innerHTML;
-  let myString = aNode.pathname.replace('/forums/members/',''); // now href is something like 'keighnmcdeath.22781/'
+  let userName = adminUserNameNode ? adminUserNameNode.innerHTML : userNameNode.innerHTML;
+  let myString = userNameNode.pathname.replace('/forums/members/',''); // now href is something like 'keighnmcdeath.22781/'
   let myRegexp = /.*\.(\d+)\//; // (.*) (dot) (digits) (ends with slash)
   let match = myRegexp.exec(myString);
   let userId = match[1];
 
+  console.log("User id: " + userId + " User name: " + userName);
+
   // if it hasn't been opened yet, populate it with custom fields
   if (!openedCards.has(userId)) {
     openedCards.add(userId);
-  	addNewLineToUserStats(cardDomElement);
   	addIgnoreButtonToCard(cardDomElement, userName, userId);
     addMyTxtToCard(cardDomElement, userId);
-    addColorPickerToCard(cardDomElement, userId);
+    addColorPickerToCard(userNameNode, userId);
   }
 }
 
 function addIgnoreButtonToCard(cardDomElement, userName, userId) {
-  let userLinksNode = cardDomElement.querySelector('div.userLinks');
+  let userButtons = cardDomElement.querySelector('div.buttonGroup');
+  let newButton = document.createElement("a");
+  
+  newButton.classList.add("button--link");
+  newButton.classList.add("button");
+  newButton.id = "ignore"+userId;
+
   let newText = document.createElement("span");
   newText.textContent = isUserIgnoredId(userId) ? "Unignore by Mod" : "Ignore by Mod";
-  newText.classList.add("url_style");
-  newText.id = "ignore"+userId;
+  newText.classList.add("button-text");
   newText.onclick = function(){toggleIgnore(newText, userName, userId)};
-  userLinksNode.appendChild(newText);
-}
 
-// adds a new line to user stats after "brofists received", otherwise the line is sometimes ugly
-function addNewLineToUserStats(cardDomElement) {
-  let statsNode = cardDomElement.querySelector('dl.userStats');
-  let newNode = document.createElement("br");
-  statsNode.insertBefore(newNode, statsNode.children[6]);
+  let indexToInsert = 1;
+
+  if (userButtons.children.length >= indexToInsert) {
+      // Insert the newElement before the child at the given index
+      userButtons.insertBefore(newButton, userButtons.children[indexToInsert]);
+  } else {
+      // If there are fewer children than the target index, just append the newElement at the end
+      userButtons.appendChild(newButton);
+  }
+  newButton.appendChild(newText);
 }
 
 // adds css for the custom textarea field on the member's card
@@ -723,9 +765,7 @@ function addMyTxtCss() {
   myTxtCss.type = 'text/css';
   myTxtCss.innerHTML = `
   .my_txt {
-    margin-left: 205px;
-    margin-top: 10px;
-    height: 70px;
+    margin: 0 0 0 10px;
   }
   textarea.textarea_my_txt {
     width: 98%;
@@ -756,18 +796,20 @@ function addMyTxtCss() {
 // adds a custom textarea to a card, fills it with saved notes
 // also adds a button to save the note
 function addMyTxtToCard(cardDomElement, userId) {
+  let contentDom = cardDomElement.querySelector("div.tooltip-content")
+  console.log("adding my txt to card");
   let newDiv = `
   <div class="my_txt">
     <textarea id="my_txt_${userId}" placeholder="Update my .txt on this user..." class="textarea_my_txt"></textarea>
   </div>
-  <div style="text-align: right; margin-left: 205px;">
+  <div style="text-align: right; margin: 0 10px 5px 0;">
     <button id="save_txt_${userId}" class="btn_blue save_btn">Save Info</button>
   </div>
   `;
-  cardDomElement.insertAdjacentHTML('beforeend', newDiv);
+  contentDom.insertAdjacentHTML('beforeend', newDiv);
 
-  let textNode = cardDomElement.querySelector(`textarea#my_txt_${userId}`);
-  let buttonNode = cardDomElement.querySelector(`button#save_txt_${userId}`);
+  let textNode = contentDom.querySelector(`textarea#my_txt_${userId}`);
+  let buttonNode = contentDom.querySelector(`button#save_txt_${userId}`);
   if (savedTexts.has(userId)) {
     textNode.value = savedTexts.get(userId);
   }
@@ -792,21 +834,25 @@ function addColorPickerCss() {
   document.head.appendChild(colorPickerCss);
 }
 
-function addColorPickerToCard(cardDomElement, userId) {
-  let h3UserName = cardDomElement.querySelector('h3.username');
+function addColorPickerToCard(userNameNode, userId) {
   // the span will act as the input of type color, while the real input is hidden (because it can't be stylized properly)
   let newSpan = `
   <span class="color_picker_span" id="color_picker_span_${userId}"></span><input type="color" id="color_input_${userId}" value="#e66465">
   `;
-  h3UserName.insertAdjacentHTML('beforeend', newSpan);
 
-  let colorInputNode = h3UserName.querySelector(`input#color_input_${userId}`);
-  let colorPickerSpan = h3UserName.querySelector(`span#color_picker_span_${userId}`);
+  let parentNode = userNameNode.parentNode;
+  // append elements to the body or any other parent element  
+  userNameNode.parentNode.insertAdjacentHTML('beforeend', newSpan);
+
+  let colorInputNode = parentNode.querySelector(`input#color_input_${userId}`);
+  let colorPickerSpan = parentNode.querySelector(`span#color_picker_span_${userId}`);
+
   // if the user already has a custom color, colorize the span
   if (userColors.has(userId)) {
     colorPickerSpan.style = `background-color: ${userColors.get(userId)};`;
-    let uncoloredNickname = h3UserName.querySelector('a.username');
+    let uncoloredNickname = userNameNode;
     uncoloredNickname.style = `color: ${userColors.get(userId)};`;
+    colorInputNode.value = `${userColors.get(userId)}`;
   }
   // make the round looking span act like the hidden input color
   colorPickerSpan.onclick = function() { colorInputNode.click() };
@@ -1023,54 +1069,11 @@ function applyIgnoreModDom() {
   }
 }
 
-function applyAvatarModCss() {
-  if (!window.location.pathname.startsWith('/forums/account/personal-details')) {
-      return;
-  }
-  let style = document.createElement('style');
-	style.type = 'text/css';
-	style.innerHTML = `
-	.xenOverlay.avatarEditor {
-		top: 0px !important;
-		left: 0px !important;
-		height: 100% !important;
-		position: fixed !important;
-		width: 100% !important;
-		max-width: none !important;
-	}
-	#AvatarPanes {
-	max-height: 68vh !important;
-	}
-	.avatarGallery .tabs li {
-	width: 15% !important;
-	}`;
-	document.head.appendChild(style);
-}
-
 function applyRatingsModCss() {
   let style = document.createElement('style');
 	style.type = 'text/css';
-	style.innerHTML = '.dark_postrating { display: none !important; }';
+	style.innerHTML = '.sv-rating-bar { display: none !important; }';
 	document.head.appendChild(style);
-}
-
-// make membercard wider
-// add url_style for "Ignore by Mod" button
-function applyMemcardModCss() {
-  let style = document.createElement('style');
-  style.type = 'text/css';
-  style.innerHTML = `
-  .xenOverlay.memberCard {
-	max-width: 630px !important;
-  }
-  span.url_style{
-	cursor: pointer;
-  }
-  span.url_style:hover {
-    text-decoration: underline;
-  }
-  `;
-  document.head.appendChild(style);
 }
 
 // modify the DOM of main page articles
