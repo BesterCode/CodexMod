@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		RPGCodex Mod
 // @match		https://rpgcodex.net/*
-// @version		2.0.4
+// @version		2.0.5
 // @license     MIT
 // @author		Bester
 // @description	Quality of Life and CSS improvements for RPGCodex.net
@@ -66,7 +66,7 @@ function initContentLoaded() {
   else {
     // main site mods that modify DOM content go here
 
-    //applyArticleModDom();
+    if (optionImproveCss) applyArticleModDom();
   }
   applyOptionsModDom();
 }
@@ -915,13 +915,16 @@ function applyImproveModCss() {
     background: #596170 !important;
   }
   .content-light {
-	width: 870px !important;
-	margin-left: auto !important;
-	margin-right: auto !important;
-	font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif !important;
-	font-size: 19px !important;
-	letter-spacing: -0.003em !important;
-	line-height: 27px !important;
+    width: 870px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    font-family: charter, Georgia, Cambria, "Times New Roman", Times, serif !important;
+    font-size: 19px !important;
+    letter-spacing: -0.003em !important;
+    line-height: 27px !important;
+  }
+  div.bbWrapper {
+    margin-bottom: 15px;
   }
   `;
   document.head.appendChild(style);
@@ -1014,8 +1017,7 @@ function applyRatingsModCss() {
 }
 
 // modify the DOM of main page articles
-// - remove "visit our sponsors" block
-// - @TODO: insert space on the left and right of article text
+// remove "Click here to disable the ads!" block
 function applyArticleModDom() {
   // remove the "Visit our sponsors!" block
   let firstArticle = document.querySelector('div.content-inside');
