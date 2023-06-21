@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		RPGCodex Mod
 // @match		https://rpgcodex.net/*
-// @version		2.0.5
+// @version		2.0.6
 // @license     MIT
 // @author		Bester
 // @description	Quality of Life and CSS improvements for RPGCodex.net
@@ -58,7 +58,7 @@ function initContentLoaded() {
     // forum mods that modify DOM content go here
 
     //applyIgnoreModDom();
-    //if (!optionRemoveRatings && optionRemoveButtons && optionWhichButtons.length > 0) applyRemoveButtonsModDom();
+    if (!optionRemoveRatings && optionRemoveButtons && optionWhichButtons.length > 0) applyRemoveButtonsModDom();
     detectOpenMemberCard(); // detects a user's card being open to inject it with "ignore by mod" button, color picker and custom text info
     //detectOpenAlertsPopup();
     if (userColors.size > 0) applyUserColorsModDom();
@@ -445,9 +445,9 @@ function applyOptionsModDom() {
       <div><span class="mod_toggler" onclick="toggleModMenu(true);">Mod Settings</span></div>
       <div class="codex_options_separator"></div>
       <div>
-        <span class="inputspan"><label><input type="checkbox" id="chbox_retromod">Semi-Retro CSS</label></span><br/>
-        <span class="inputspan"><label><input type="checkbox" id="chbox_remove_ratings">Remove Ratings</label></span>
-        <span class="inputspan"><label><input type="checkbox" id="chbox_improve_css">Improve Article CSS</label></span>
+        <span class="inputspan"><label><input type="checkbox" id="chbox_retromod"> Semi-Retro CSS</label></span><br/>
+        <span class="inputspan"><label><input type="checkbox" id="chbox_remove_ratings"> Remove Ratings</label></span>
+        <span class="inputspan"><label><input type="checkbox" id="chbox_improve_css"> Improve Article CSS</label></span>
       </div>
       <div id="ignored_members_container">
         Ignored members:
@@ -455,7 +455,7 @@ function applyOptionsModDom() {
         </div>
       </div>
       <div class="div_remove_buttons">
-        <label><input type="checkbox" id="chbox_remove_buttons">Remove Buttons:</label><br>
+        <label><input type="checkbox" id="chbox_remove_buttons"> Remove ratings from your posts:</label><br>
         <textarea id="text_which_buttons" spellcheck="false" rows="2" style="width: 99%; resize: none; overflow-x: hidden; height: 50px; outline: 0; border: 0;
         border-radius: 3px; padding: 2px 0 0 2px; background: #f0f0f0; color: #2c303a; margin-top: 3px;"
         placeholder="Type in button names separated by a comma..."></textarea>
@@ -1035,49 +1035,109 @@ function applyArticleModDom() {
   adDiv.parentNode.removeChild(adDiv);
 }
 
-// removes buttons that the user specified in the options
+// removes buttons that the user specified in the options from under YOUR posts
 function applyRemoveButtonsModDom() {
+  // first, find what's your nickname so that we may find your posts
+  let yourNameDiv = document.querySelector('span.p-navgroup-linkText');
+  let yourNickname = yourNameDiv.innerHTML;
+  console.log("Your name is: " + yourNickname);
+  
+  // then we'll find your post ids, which will be useful when displaying a popup with "who reacted..."
+  let allPosts = document.querySelectorAll('article.message, article.message--post, article.js-post, article.js-inlineModContainer');
+  console.log("Posts on this page: " + allPosts.length);
+  let myPosts = [];
+  let myPostIds = new Set();
+  for (let i = 0; i < allPosts.length; i++) {
+    let postAuthor = allPosts[i].getAttribute("data-author");
+    if (postAuthor == yourNickname) {
+      let dataContent = allPosts[i].getAttribute("data-content");
+      var postId = dataContent.split("-")[1];
+      myPostIds.add(postId);
+      myPosts.push(allPosts[i]);
+    }
+  }
+  console.log("Your posts: " + myPosts.length);
+
+  // get the ratings we want to remove
   const buttonsSet = new Set(optionWhichButtons.replaceAll(',, ',',,').toLowerCase().split(',,'));
-  let buttonContainers = document.body.querySelectorAll('ul.dark_postrating_inputlist');
-  for (let buttonContainer of buttonContainers) {
-    // print all buttons:
-    // let str = '';
-    // for (let i = 0; i < buttonContainer.children.length; i++) {
-    //   let liNode = buttonContainer.children[i];
-    //   let imgNode = liNode.firstChild.firstChild;
-    //   str += imgNode.alt+',,';
-    // }
-    // console.log(str);
-    removeButtonsFromContainer(buttonsSet, buttonContainer);
+  
+  // go over your every post and remove undesired buttons
+  for (let myPost of myPosts) {
+    // Get UL with ratings
+    let ulReactions = myPost.querySelector('ul.sv-rating-bar__ratings');
+    if (ulReactions === null) continue; // skip posts without reactions
+    
+    // Get all LI elements
+    let liElements = ulReactions.querySelectorAll('li.sv-rating');
+
+    for (let i = liElements.length - 1; i >= 0; i--) {
+      let li = liElements[i];
+      let aElement = li.querySelector('a'); // Get the child a element
+      let title = aElement.getAttribute('title').toLowerCase(); // Get the title attribute
+      if (buttonsSet.has(title)) {        
+        ulReactions.removeChild(li); // If title is in the set, remove the li element
+      }
+    }    
   }
 
-  let divsToWatch = document.querySelectorAll('div.dark_postrating.likesSummary.secondaryContent')
-  for (let divToWatch of divsToWatch) {
-    // if a user undoes a rating, the container will get repopulated with all the buttons by the forum engine
-    // so we need to watch for changes in it and remove the buttons again if necessary
-    observeDOM(divToWatch, function(m){
-      console.clear();
-      let addedNodes = [];
-      m.forEach(record => record.addedNodes.length & addedNodes.push(...record.addedNodes))
-      addedNodes.forEach(addedNode => {
-        if (addedNodes.length > 0 && addedNodes[0].children.length === 3
-            && addedNodes[0].children[2].classList.length > 0
-            && addedNodes[0].children[2].classList[0] === 'dark_postrating_inputlist') {
-          removeButtonsFromContainer(buttonsSet, addedNodes[0].children[2]);
+  // Create a mutation observer
+  let observer = new MutationObserver((mutations) => {
+    // For each mutation
+    for(let mutation of mutations) {
+      // If the mutation type is childList and nodes have been added
+      if(mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        // For each added node
+        for(let node of mutation.addedNodes) {
+          // If the node is the div you're looking for
+          if(node.classList !== undefined && node.classList.contains('overlay-container') && node.classList.contains('is-active')) {
+            // Get the child div
+            let childDiv = node.querySelector('.overlay');
+            if(childDiv) {
+              // Extract the post id from the data-url attribute
+              let dataUrl = childDiv.getAttribute('data-url');
+              let postId = dataUrl.split('/posts/')[1].split('/')[0];
+              console.log("Post id: " + postId);
+
+              // if this is my post              
+              if (myPostIds.has(postId)) {                 
+
+                // 1. remove tabs with the offending reaction
+                let tabParent = childDiv.querySelector('span.hScroller-scroll');
+                let tabChildren = tabParent.querySelectorAll('a.tabs-tab');
+                for (let i = tabChildren.length - 1; i >= 0; i--) {
+                  let reactImg = tabChildren[i].querySelector('img');
+                  if (reactImg !== null) {
+                    let tabName = reactImg.getAttribute('alt');
+                    if (buttonsSet.has(tabName.toLowerCase())) {
+                      tabParent.removeChild(tabChildren[i]);
+                    }
+                  }
+                }
+
+                // 2. remove offending reactions from the All tab
+                let allReactsParent = childDiv.querySelector('ol.js-reactionList-0');
+                let allReactsChildren = allReactsParent.querySelectorAll('li');
+                for (let i = allReactsChildren.length - 1; i >= 0; i--) {
+                  let reactDiv = allReactsChildren[i].querySelector('div.sv-rating-type__icon');
+                  if (reactDiv === null) continue;
+                  let reactImg = reactDiv.querySelector('img');
+                  if (reactImg !== null) {
+                    let tabName = reactImg.getAttribute('alt');
+                    if (buttonsSet.has(tabName.toLowerCase())) {
+                      allReactsParent.removeChild(allReactsChildren[i]);
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
-      });
-    });
-  }
-}
-
-function removeButtonsFromContainer(buttonsSet, buttonContainer) {
-      for (let i = buttonContainer.children.length-1; i >= 0; i--) {
-      let liNode = buttonContainer.children[i];
-      let imgNode = liNode.firstChild.firstChild;
-      if (imgNode.alt && buttonsSet.has(imgNode.alt.toLowerCase())) {
-        liNode.parentNode.removeChild(liNode);
       }
     }
+  });
+
+  // Start observing the body for added nodes
+  observer.observe(document.body, { childList: true, subtree: true });
 }
 
 /// utility functions below ///
