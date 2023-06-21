@@ -18,6 +18,7 @@ Some of its functionality:
 
 ## Reminder to self
 Use this as IDE: [https://vscode.dev/?connectTo=tampermonkey](https://vscode.dev/?connectTo=tampermonkey)
+
 Only make sure this extension is installed: [https://chrome.google.com/webstore/detail/tampermonkey-editors/lieodnapokbjkkdkhdljlllmgkmdokcm](https://chrome.google.com/webstore/detail/tampermonkey-editors/lieodnapokbjkkdkhdljlllmgkmdokcm)
 
 ## Installation
