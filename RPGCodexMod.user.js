@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		RPGCodex Mod
 // @match		https://rpgcodex.net/*
-// @version		2.0.3
+// @version		2.0.4
 // @license     MIT
 // @author		Bester
 // @description	Quality of Life and CSS improvements for RPGCodex.net
@@ -48,7 +48,7 @@ async function init() {
   else {
     // main site mods that modify CSS go here
 
-    //if (optionImproveCss) applyImproveModCss();
+    if (optionImproveCss) applyImproveModCss();
   }
 }
 
