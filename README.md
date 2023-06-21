@@ -16,5 +16,9 @@ Some of its functionality:
 ## Codex thread
 [Link](https://rpgcodex.net/forums/threads/codex-mod.139660/)
 
+## Reminder to self
+Use this as IDE: [https://vscode.dev/?connectTo=tampermonkey](https://vscode.dev/?connectTo=tampermonkey)
+Only make sure this extension is installed: [https://chrome.google.com/webstore/detail/tampermonkey-editors/lieodnapokbjkkdkhdljlllmgkmdokcm](https://chrome.google.com/webstore/detail/tampermonkey-editors/lieodnapokbjkkdkhdljlllmgkmdokcm)
+
 ## Installation
 MIT
