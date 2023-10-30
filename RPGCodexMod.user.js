@@ -54,11 +54,11 @@ async function init() {
 
 // fires when the DOM content is loaded
 function initContentLoaded() {
+  // forum mods that modify DOM content go here
   if (window.location.pathname.startsWith('/forums')) {
-    // forum mods that modify DOM content go here
-
-    //applyIgnoreModDom();
-    if (!optionRemoveRatings && optionRemoveButtons && optionWhichButtons.length > 0) applyRemoveButtonsModDom();
+    if (!optionRemoveRatings && optionRemoveButtons && optionWhichButtons.length > 0) {
+        applyRemoveButtonsModDom();
+    }
     detectOpenMemberCard(); // detects a user's card being open to inject it with "ignore by mod" button, color picker and custom text info
     //detectOpenAlertsPopup();
     if (userColors.size > 0) applyUserColorsModDom();
@@ -69,6 +69,28 @@ function initContentLoaded() {
     if (optionImproveCss) applyArticleModDom();
   }
   applyOptionsModDom();
+  applySortVotesDom();
+}
+
+function applySortVotesDom() {
+    // Locate the list of votes
+    const ul = document.querySelector('.listPlain');
+    if (!ul) return;
+
+    // Convert NodeList to Array and sort it
+    const sortedItems = Array.from(ul.children).sort((a, b) => {
+        // Extract number from 'a'
+        const numA = parseInt(a.querySelector('.u-muted').nextSibling.nodeValue.trim(), 10);
+
+        // Extract number from 'b'
+        const numB = parseInt(b.querySelector('.u-muted').nextSibling.nodeValue.trim(), 10);
+
+        // Sort in descending order
+        return numB - numA;
+    });
+
+    // Append sorted items back to the ul
+    sortedItems.forEach(item => ul.appendChild(item));
 }
 
 // @run-at document-start fires when there's just <html> tags, but no head yet, so we wait for it before injecting css
@@ -1098,8 +1120,8 @@ function applyRemoveButtonsModDom() {
               let postId = dataUrl.split('/posts/')[1].split('/')[0];
               console.log("Post id: " + postId);
 
-              // if this is my post              
-              if (myPostIds.has(postId)) {                 
+              // if this is my post
+              if (myPostIds.has(postId)) {
 
                 // 1. remove tabs with the offending reaction
                 let tabParent = childDiv.querySelector('span.hScroller-scroll');
@@ -1138,6 +1160,21 @@ function applyRemoveButtonsModDom() {
 
   // Start observing the body for added nodes
   observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// by Stavrophore
+// currently not called, because I have no idea where to call it
+// @TODO: before calling, check if (ignoredUsers.size > 0)
+function applyRemoveButtonsModDom2() {
+    console.log("stavro mod executed");
+    let posts = document.querySelectorAll('li.block-row--separated');
+    let reactionListPosts = document.querySelector('ul.js-reactionList-0');
+    for(let i = 0; i < posts.length; i++){
+        let posterID = posts[i].querySelector('a[data-user-id]').getAttribute('data-user-id');
+        if(ignoredUsers.has(posterID)){
+            reactionListPosts.removeChild(posts[i]);
+        }
+    }
 }
 
 /// utility functions below ///
