@@ -1197,8 +1197,8 @@ function displayMyNotesButton()
         linkElement.textContent = 'My Notes';
       }
 
-      // Insert the cloned <li> element at index 1
-      navList.insertBefore(clonedListItem, navList.children[1]);
+      // Insert the cloned <li> element at index 2
+      navList.insertBefore(clonedListItem, navList.children[2]);
     }
   }
 }
