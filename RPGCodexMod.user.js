@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		RPGCodex Mod
 // @match		https://rpgcodex.net/*
-// @version		2.0.6
+// @version		2.0.7
 // @license     MIT
 // @author		Bester
 // @description	Quality of Life and CSS improvements for RPGCodex.net
@@ -11,6 +11,11 @@
 // @updateURL   https://github.com/BesterCode/CodexMod/raw/main/RPGCodexMod.user.js
 // @downloadURL https://github.com/BesterCode/CodexMod/raw/main/RPGCodexMod.user.js
 // ==/UserScript==
+
+// Reminder to self:
+// To dit the script in https://vscode.dev/?connectTo=tampermonkey
+// 1. Go to chrome://flags/ and enable Mutation events
+// 2. Install this extension: https://chromewebstore.google.com/detail/tampermonkey-editors/lieodnapokbjkkdkhdljlllmgkmdokcm
 
 let ignoredUsers = new Map(); // map <id, name>
 let ignoredUserNames = new Set();
@@ -62,6 +67,13 @@ function initContentLoaded() {
     detectOpenMemberCard(); // detects a user's card being open to inject it with "ignore by mod" button, color picker and custom text info
     //detectOpenAlertsPopup();
     if (userColors.size > 0) applyUserColorsModDom();
+
+    // display my notes button
+    displayMyNotesButton();
+    // display my notes
+    if (window.location.pathname.startsWith('/forums/mynotes/')) {
+      displayMyNotes();
+    }
   }
   else {
     // main site mods that modify DOM content go here
@@ -1162,19 +1174,112 @@ function applyRemoveButtonsModDom() {
   observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// by Stavrophore
-// currently not called, because I have no idea where to call it
-// @TODO: before calling, check if (ignoredUsers.size > 0)
-function applyRemoveButtonsModDom2() {
-    console.log("stavro mod executed");
-    let posts = document.querySelectorAll('li.block-row--separated');
-    let reactionListPosts = document.querySelector('ul.js-reactionList-0');
-    for(let i = 0; i < posts.length; i++){
-        let posterID = posts[i].querySelector('a[data-user-id]').getAttribute('data-user-id');
-        if(ignoredUsers.has(posterID)){
-            reactionListPosts.removeChild(posts[i]);
-        }
+// adds a "My Notes" button in the top menu
+function displayMyNotesButton()
+{
+  // Find the <ul> element with the class "p-nav-list js-offCanvasNavSource"
+  const navList = document.querySelector('ul.p-nav-list.js-offCanvasNavSource');
+
+  if (navList) {
+    // Find the first <li> element inside the <ul>
+    const firstListItem = navList.querySelector('li');
+
+    if (firstListItem) {
+      // Clone the first <li> element
+      const clonedListItem = firstListItem.cloneNode(true);
+
+      // Find the <a> element inside the cloned <li>
+      const linkElement = clonedListItem.querySelector('a');
+
+      if (linkElement) {
+        // Change the href attribute of the <a> element
+        linkElement.href = 'https://rpgcodex.net/forums/mynotes/';
+        linkElement.textContent = 'My Notes';
+      }
+
+      // Insert the cloned <li> element at index 1
+      navList.insertBefore(clonedListItem, navList.children[1]);
     }
+  }
+}
+// When we go to 'forums/mynotes/'
+// 1. Remove 'Oops! We ran into some problems.' and 'The requested page could not be found.'
+// 2. Display our members notes
+function displayMyNotes() {
+  // Find the <h1> element with the class "p-title-value"
+  const titleElement = document.querySelector('h1.p-title-value');
+
+  // Change its text to "foo"
+  if (titleElement) {
+    titleElement.textContent = 'My notes.txt';
+  }
+
+  let contentDiv = null;
+
+  const pageContent = document.querySelector('div.p-body-pageContent');
+  if (pageContent) {
+    // Find the <div> element with the class "blockMessage"
+    const blockMessage = pageContent.querySelector('div.blockMessage');
+
+    if (blockMessage) {      
+      // Clone the <div> element without content
+      contentDiv = blockMessage.cloneNode(false);
+
+      // Hide the original <div> element
+      blockMessage.style.display = 'none';
+
+      // Insert the cloned <div> element after the original <div>
+      blockMessage.parentNode.insertBefore(contentDiv, blockMessage.nextSibling);
+    }
+  }
+
+  // this would center the block, but unfortunately it makes it impossible to use color picker, which always appears in upper left corner
+  // so we comment this out, ugh
+  //contentDiv.style.display = 'flex';
+  //contentDiv.style.justifyContent = 'center';
+  //contentDiv.style.alignItems = 'center';
+
+  let notesParentDivDefinition = `
+  <div id="notesParent" 
+    style="
+      width: 700px; 
+      padding: 0px 5px 0px 5px;
+      background-color: #373e55;
+      "
+    >
+  </div>
+  `;
+  contentDiv.insertAdjacentHTML('beforeend', notesParentDivDefinition);
+  let notesParentDiv = document.getElementById('notesParent');
+
+  savedTexts.forEach((text, id) => {
+    let avatarSection = Math.floor(parseInt(id) / 1000);
+    let userColor = '#fff';
+    if (userColors.has(id)) {
+      userColor = userColors.get(id);
+    }
+
+    var linkHTML = `
+      <div style="display: flex; padding: 5px 0px 5px 0px; align-items: center;">
+        <div style="padding-right: 5px;">
+          <a style="width: 48px; height: 48px;" href="/forums/members/.${id}/" class="avatar avatar--m avatar--default avatar--default--image" data-user-id="${id}" data-xf-init="member-tooltip" id="js-XFUniqueId3">
+            <img src="/forums/data/avatars/s/${avatarSection}/${id}.jpg?1389017595" 
+            srcset="/forums/data/avatars/m/${avatarSection}/${id}.jpg?1389017595 2x">
+          </a>
+        </div>
+
+        <div style="color: ${userColor}">
+        ${text.replace(/\n/g, "<br>")}
+        </div>
+        
+      </div>
+    `;
+
+    notesParentDiv.insertAdjacentHTML('beforeend', linkHTML);
+
+  })
+
+
 }
 
 /// utility functions below ///
