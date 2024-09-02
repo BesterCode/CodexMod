@@ -1206,6 +1206,8 @@ function displayMyNotesButton()
 // 1. Remove 'Oops! We ran into some problems.' and 'The requested page could not be found.'
 // 2. Display our members notes
 function displayMyNotes() {
+  document.title = "My Notes.txt";
+
   // Find the <h1> element with the class "p-title-value"
   const titleElement = document.querySelector('h1.p-title-value');
 
