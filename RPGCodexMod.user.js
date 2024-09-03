@@ -1264,9 +1264,11 @@ function displayMyNotes() {
     var linkHTML = `
       <div style="display: flex; padding: 5px 0px 5px 0px; align-items: center;">
         <div style="padding-right: 5px;">
-          <a style="width: 48px; height: 48px;" href="/forums/members/.${id}/" class="avatar avatar--m avatar--default avatar--default--image" data-user-id="${id}" data-xf-init="member-tooltip" id="js-XFUniqueId3">
+          <a href="/forums/members/.${id}/" data-user-id="${id}" data-xf-init="member-tooltip" id="js-XFUniqueId3" style="display: block; width: 48px; height: 48px;">
             <img src="/forums/data/avatars/s/${avatarSection}/${id}.jpg?1389017595" 
-            srcset="/forums/data/avatars/m/${avatarSection}/${id}.jpg?1389017595 2x">
+            srcset="/forums/data/avatars/m/${avatarSection}/${id}.jpg?1389017595 2x"
+            onerror="this.src='../data/assets/default_avatars/avatar_male_l.png';this.srcset='../data/assets/default_avatars/avatar_male_l.png 2x'"
+            style="width: 48px; height: 48px;" >
           </a>
         </div>
 
