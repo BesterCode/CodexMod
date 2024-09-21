@@ -347,6 +347,9 @@ function applyRetroModCss() {
     span.message-avatar-online {
       display: none;
     }
+    .sv-rating-type-icon {
+      max-height: 24px !important;
+    }
     `;
     document.head.appendChild(retroStyle);
 }
