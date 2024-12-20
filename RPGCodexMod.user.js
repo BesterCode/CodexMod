@@ -487,7 +487,7 @@ function applyOptionsModDom() {
         <span class="inputspan"><label><input type="checkbox" id="chbox_improve_css"> Improve Article CSS</label></span>
       </div>
       <div id="ignored_members_container">
-        Ignored members:
+        Ignored members: ${ignoredUsers.size}
         <div class="ignoredFlex">
         </div>
       </div>
