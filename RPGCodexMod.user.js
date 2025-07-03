@@ -44,6 +44,7 @@ async function init() {
   if (window.location.pathname.startsWith('/forums')) {
     // forum mods that modify CSS go here
 
+    removeAdsModCss();
     if (optionRetroMod) applyRetroModCss();
     applyIgnoreModCss();
     if (optionRemoveRatings) applyRatingsModCss();
@@ -188,6 +189,16 @@ function reloadTempSet() {
   for (let [ignoredId, ignoredName] of ignoredUsers) {
     ignoredUserNames.add(ignoredName);
   }
+}
+
+function removeAdsModCss() {
+    let cusotmStyle = document.createElement('style');
+    cusotmStyle.type = 'text/css';
+    cusotmStyle.innerHTML = `
+    .structItem.structItem--thread.samUnitWrapper {
+      display: none;
+    }`;
+    document.head.appendChild(cusotmStyle);
 }
 
 function applyRetroModCss() {
